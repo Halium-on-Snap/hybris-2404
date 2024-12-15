@@ -1,6 +1,6 @@
-# Mesa libraries for `base: core24` snaps
+# libhybris libraries for `base: core24` snaps
 
-A content snap providing the Mesa userspace libraries and drivers for core24-based snaps.
+A content snap providing the libhybris userspace libraries and drivers for core24-based snaps.
 
 This supplies the gpu-2404 content interface:
 
