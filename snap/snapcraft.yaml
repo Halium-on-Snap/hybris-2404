@@ -15,9 +15,9 @@ description: |
   documentation below:
 
   https://mir-server.io/docs/the-gpu-2404-snap-interface
-website: https://github.com/canonical/mesa-2404
-contact: https://github.com/canonical/mesa-2404/issues
-source-code: https://github.com/canonical/mesa-2404
+website: https://github.com/Halium-on-Snap/hybris-2404
+contact: https://github.com/Halium-on-Snap/hybris-2404/issues
+source-code: https://github.com/Halium-on-Snap/hybris-2404
 
 compression: lzo
 version: "latest"
@@ -227,8 +227,6 @@ parts:
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
     override-prime: |
-      rm -rf $SNAPCRAFT_PRIME/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libvulkan*.so*
-      cd $CRAFT_PART_INSTALL
       craftctl default
     # prime:
     #   - usr/lib
