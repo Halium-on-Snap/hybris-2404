@@ -1,12 +1,14 @@
-name: mesa-2404
+name: hybris-2404
 license: MIT
 base: core24
-summary: Mesa libraries for core24 snaps
+summary: libhybris libraries for core24 snaps
 description: |
   A content snap containing the mesa libraries and drivers for `base: core24` snaps.
 
-  It supports a broad range of hardware through the Mesa stack as well as Nvidia
-  drivers installed from your distribution through the native SnapD support.
+  It supports hardware compatible to a typical Halium environment that uses the
+  opengl interface.
+
+  To use it, just connect it as the respective gpu-2404 provider for the Snap.
 
   To make use of this snap in your application, allowing for GPU acceleration on
   a broader set of hardware without including the drivers in your snap, refer to the
@@ -18,18 +20,14 @@ contact: https://github.com/canonical/mesa-2404/issues
 source-code: https://github.com/canonical/mesa-2404
 
 compression: lzo
-adopt-info: dri
+version: "latest"
 
 grade: stable
 confinement: strict
 
 platforms:
-  amd64:
   arm64:
   armhf:
-  ppc64el:
-  s390x:
-  riscv64:
 
 package-repositories:
   - type: apt
@@ -46,7 +44,6 @@ parts:
     #   o libGL.so.0
     #   o libEGL.so.1
     #   o libva.so.2
-    #   o libvulkan.so.1
     #   o libgbm.so.1
     #
     plugin: nil
@@ -54,7 +51,6 @@ parts:
       - libgl1
       - libegl1
       - libgles2
-      - libvulkan1
       - libgbm1
     prime:
       - usr/lib
@@ -97,7 +93,6 @@ parts:
       - va-driver-all
       - vdpau-driver-all
       - libvdpau-va-gl1
-      - mesa-vulkan-drivers
       - libglx-mesa0
     organize:
       # Expected at /drirc.d by the `gpu-2404` interface
@@ -105,12 +100,9 @@ parts:
     prime:
       - usr/lib
       - usr/share/doc/*/copyright
-      - usr/share/vulkan
       - drirc.d
     override-stage: |
-      sed -i 's@/usr/lib/[a-z0-9_-]\+/@@' ${CRAFT_PART_INSTALL}/usr/share/vulkan/*/*.json
       craftctl default
-      craftctl set version=$( apt-cache policy libgl1-mesa-dri | sed -rne 's/^\s+Candidate:\s+([^-]*)-.+$/\1/p' )
 
   x11:
     # X11 support (not much cost to having this)
@@ -190,133 +182,6 @@ parts:
       - usr/lib/**/*.so.*
       - usr/share/egl/egl_external_platform.d
 
-  apis-i386:
-      # This provides the essential APIs
-      #   o libGL.so.1
-      #   o libEGL.so.1
-      #   o libva.so.2
-      #   o libvulkan.so.1
-      #   o libgbm.so.1
-      #
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libgl1:i386
-        - libegl1:i386
-        - libgles2:i386
-        - libvulkan1:i386
-        - libgbm1:i386
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    prime:
-      - usr/lib
-      - usr/share/doc/*/copyright
-      - usr/share/glvnd
-
-  drm-i386:
-    # DRM userspace
-    #   o libdrm.so.2
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libdrm2:i386
-        - libdrm-common
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    organize:
-      # Expected at /libdrm by the `gpu-2404` interface
-      usr/share/libdrm: libdrm
-    prime:
-      - usr/lib
-      - usr/share/doc/*/copyright
-      - libdrm
-
-  va-i386:
-    # Video Acceleration API
-    #   o libva.so.2
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libva2:i386
-        - libva-drm2:i386
-        - libva-x11-2:i386
-        - libva-wayland2:i386
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    prime:
-      - usr/lib
-      - usr/share/doc/*/copyright
-
-  dri-i386:
-    # Userspace drivers
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libgl1-mesa-dri:i386
-        - va-driver-all:i386
-        - vdpau-driver-all:i386
-        - mesa-vulkan-drivers:i386
-        - libglx-mesa0:i386
-    override-stage: |
-      if [ `arch` = "x86_64" ]; then
-        sed -i 's@/usr/lib/[a-z0-9_-]\+/@@' ${CRAFT_PART_INSTALL}/usr/share/vulkan/*/*.json
-      fi
-      craftctl default
-    organize:
-      # Expected at /drirc.d by the `gpu-2404` interface
-      usr/share/drirc.d: drirc.d
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    prime:
-      - usr/lib
-      - usr/share/vulkan
-      - usr/share/doc/*/copyright
-      - drirc.d
-
-  x11-i386:
-    # X11 support (not much cost to having this)
-    #   o libGLX.so.0
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libglx0:i386
-        - libva-x11-2:i386
-        - libx11-xcb1:i386
-        - libxau6:i386
-        - libxcb-dri2-0:i386
-        - libxcb-dri3-0:i386
-        - libxcb-present0:i386
-        - libxcb-sync1:i386
-        - libxcb-xfixes0:i386
-        - libxcb1:i386
-        - libxdamage1:i386
-        - libxdmcp6:i386
-        - libxshmfence1:i386
-    organize:
-      # Expected at /X11 by the `gpu-2404` interface
-      usr/share/X11: X11
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    prime:
-      - usr/lib
-      - usr/share/doc/*/copyright
-      - X11
-
-  wayland-i386:
-    # Wayland support (not much cost to having this)
-    plugin: nil
-    stage-packages:
-      - on amd64:
-        - libwayland-client0:i386
-        - libwayland-cursor0:i386
-        - libwayland-egl1:i386
-        - libwayland-server0:i386
-    override-prime: |
-      if [ `arch` = "x86_64" ]; then craftctl default; fi
-    prime:
-      - usr/lib
-      - usr/share/doc/*/copyright
-
   nvidia-egl-ext-i386:
     # EGL external platforms
     plugin: nil
@@ -328,6 +193,46 @@ parts:
     prime:
       - usr/lib
 
+  android-headers:
+    plugin: autotools
+    source: https://github.com/Halium/android-headers.git
+    source-branch: halium-11.0
+    override-build: |
+      export PREFIX=$CRAFT_PART_INSTALL/usr
+      make
+      make install
+
+  hybris:
+    # This provides the essential APIs
+    #   o libGL.so.0
+    #   o libEGL.so.1
+    #   o libvulkan.so.1
+    after: [ android-headers ]
+    plugin: autotools
+    source: https://github.com/libhybris/libhybris.git
+    source-branch: master
+    build-packages:
+      - libwayland-dev
+      - libwayland-egl-backend-dev
+      - libvulkan-dev
+      - libglvnd-dev
+    build-environment:
+      - CFLAGS: -Wno-pointer-to-int-cast
+      - CXXFLAGS: -Wno-pointer-to-int-cast
+    override-build: |
+      cd $CRAFT_PART_SRC_WORK/hybris
+      export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
+      ./autogen.sh
+      ./configure --prefix=/usr --enable-arch=$CRAFT_ARCH_BUILD_FOR --enable-wayland --enable-glvnd --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache --enable-mali-quirks --enable-experimental
+      CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
+      make install
+    override-prime: |
+      rm -rf $SNAPCRAFT_PRIME/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libvulkan*.so*
+      cd $CRAFT_PART_INSTALL
+      craftctl default
+    # prime:
+    #   - usr/lib
+
   # Work around https://bugs.launchpad.net/snapcraft/+bug/2076115
   cleanup:
     after:
@@ -338,13 +243,8 @@ parts:
     - va
     - x11
     - wayland
-    - apis-i386
-    - drm-i386
-    - dri-i386
-    - nvidia-egl-ext-i386
-    - va-i386
-    - x11-i386
-    - wayland-i386
+    - android-headers
+    - hybris
     plugin: nil
     build-snaps:
     - core24
