@@ -225,7 +225,7 @@ parts:
       ./autogen.sh
       ./configure --prefix=/usr --enable-arch=$CRAFT_ARCH_BUILD_FOR --enable-wayland --enable-glvnd --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache --enable-mali-quirks --enable-experimental
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
-      make install
+      DESTDIR=$CRAFT_PART_INSTALL make install
     override-prime: |
       rm -rf $SNAPCRAFT_PRIME/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libvulkan*.so*
       cd $CRAFT_PART_INSTALL
