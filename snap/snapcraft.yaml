@@ -193,6 +193,15 @@ parts:
     prime:
       - usr/lib
 
+  tls-padding:
+    plugin: make
+    source: https://gitlab.com/ubports/development/core/hybris-support/tls-padding.git
+    source-branch: main
+    override-build: |
+      export PREFIX=$CRAFT_PART_INSTALL/usr
+      make
+      make install
+
   android-headers:
     plugin: autotools
     source: https://github.com/Halium/android-headers.git
@@ -243,6 +252,7 @@ parts:
     - va
     - x11
     - wayland
+    - tls-padding
     - android-headers
     - hybris
     plugin: nil
