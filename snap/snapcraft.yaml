@@ -221,7 +221,7 @@ parts:
       - CXXFLAGS: -Wno-pointer-to-int-cast
     override-build: |
       ARCH=arm64
-      [ "$$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
+      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
       cd $CRAFT_PART_SRC_WORK/hybris
       export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
       ./autogen.sh
