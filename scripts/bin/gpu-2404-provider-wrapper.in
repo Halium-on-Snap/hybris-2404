@@ -21,13 +21,15 @@ VK_LAYER_PATH=${VK_LAYER_PATH:+$VK_LAYER_PATH:}${SELF}/share/vulkan/implicit_lay
 XDG_DATA_DIRS=${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}${SELF}/share
 XLOCALEDIR="${SELF}/share/X11/locale"
 
-# These are in the default LD_LIBRARY_PATH, but in case the snap dropped it inadvertently
-if [ -d "/var/lib/snapd/lib/gl" ] && [[ ! ${LD_LIBRARY_PATH} =~ (^|:)/var/lib/snapd/lib/gl(:|$) ]]; then
-  LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/var/lib/snapd/lib/gl
+# These are in the default LD_LIBRARY_PATH, but we don't want those.
+# These are from the host in a potentially different ABI.
+if [ -d "/var/lib/snapd/lib/gl" ] && [ $(echo "${LD_LIBRARY_PATH}" | grep "/var/lib/snapd/lib/gl:") ]; then
+  LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed -e 's|/var/lib/snapd/lib/gl:||g')
 fi
 
-if [ -d "/var/lib/snapd/lib/gl32" ] && [[ ! ${LD_LIBRARY_PATH} =~ (^|:)/var/lib/snapd/lib/gl32(:|$) ]]; then
-  LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/var/lib/snapd/lib/gl32
+# Same for 32bit
+if [ -d "/var/lib/snapd/lib/gl32" ] && [ $(echo "${LD_LIBRARY_PATH}" | grep "/var/lib/snapd/lib/gl32:") ]; then
+  LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed -e 's|/var/lib/snapd/lib/gl32:||g')
 fi
 
 if [ -d "/var/lib/snapd/lib/glvnd/egl_vendor.d" ]; then
