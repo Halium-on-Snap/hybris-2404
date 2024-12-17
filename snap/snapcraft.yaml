@@ -3,7 +3,7 @@ license: MIT
 base: core24
 summary: libhybris libraries for core24 snaps
 description: |
-  A content snap containing the mesa libraries and drivers for `base: core24` snaps.
+  A content snap containing libhybris libraries and drivers for `base: core24` snaps.
 
   It supports hardware compatible to a typical Halium environment that uses the
   opengl interface.
@@ -220,10 +220,12 @@ parts:
       - CFLAGS: -Wno-pointer-to-int-cast
       - CXXFLAGS: -Wno-pointer-to-int-cast
     override-build: |
+      ARCH=arm64
+      [ "$$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
       cd $CRAFT_PART_SRC_WORK/hybris
       export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
       ./autogen.sh
-      ./configure --prefix=/usr --enable-arch=$CRAFT_ARCH_BUILD_FOR --enable-wayland --enable-glvnd --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache --enable-mali-quirks --enable-experimental
+      ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache --enable-mali-quirks --enable-experimental
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
     override-prime: |
