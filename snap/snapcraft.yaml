@@ -200,7 +200,8 @@ parts:
     override-build: |
       export PREFIX=$CRAFT_PART_INSTALL/usr
       make
-      make install
+      mkdir -p $PREFIX/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
+      cp libtls-padding.so $PREFIX/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/
 
   android-headers:
     plugin: autotools
