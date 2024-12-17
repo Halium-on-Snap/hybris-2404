@@ -253,6 +253,11 @@ parts:
       cd /snap/core24/current
       find . -type f,l -exec rm -f ${CRAFT_PRIME}/{} \;
       find ${CRAFT_PRIME} -empty -type d -delete
+      # Move libhybris where it belongs
+      rm ${CRAFT_PRIME}/usr/lib/*.la
+      mv ${CRAFT_PRIME}/usr/lib/*.so* ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
+      mv ${CRAFT_PRIME}/usr/lib/libhybris ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
+      rm -rf ${CRAFT_PRIME}/usr/lib/pkgconfig
 
   file-list:
     after: [cleanup]
