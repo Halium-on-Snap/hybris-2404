@@ -9,8 +9,9 @@ for arch in ${ARCH_TRIPLETS[@]}; do
   LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${SELF}/lib/${arch}:${SELF}/lib/${arch}/vdpau
   LIBGL_DRIVERS_PATH=${LIBGL_DRIVERS_PATH:+$LIBGL_DRIVERS_PATH:}${SELF}/lib/${arch}/dri/
   LIBVA_DRIVERS_PATH=${LIBVA_DRIVERS_PATH:+$LIBVA_DRIVERS_PATH:}${SELF}/lib/${arch}/dri/
-  HYBRIS_LINKER_DIR=${HYBRIS_LINKER_DIR:+$HYBRIS_LINKER_DIR:}${SELF}/lib/${arch}/libhybris/linker
-  HYBRIS_EGLPLATFORM_DIR=${HYBRIS_EGLPLATFORM_DIR:+$HYBRIS_EGLPLATFORM_DIR:}${SELF}/lib/${arch}/libhybris
+  HYBRIS_LINKER_DIR=${SELF}/lib/${arch}/libhybris/linker
+  HYBRIS_EGLPLATFORM_DIR=${SELF}/lib/${arch}/libhybris
+  HYBRIS_VULKANPLATFORM_DIR=${SELF}/lib/${arch}/libhybris
   LD_PRELOAD=${LD_PRELOAD:+$LD_PRELOAD:}${SELF}/lib/${arch}/libtls-padding.so
 done
 __EGL_VENDOR_LIBRARY_DIRS=${__EGL_VENDOR_LIBRARY_DIRS:+$__EGL_VENDOR_LIBRARY_DIRS:}${SELF}/share/glvnd/egl_vendor.d
@@ -67,6 +68,7 @@ export XDG_DATA_DIRS
 export XLOCALEDIR
 export HYBRIS_LINKER_DIR
 export HYBRIS_EGLPLATFORM_DIR
+export HYBRIS_VULKANPLATFORM_DIR
 export LD_PRELOAD
 
 exec "$@"
