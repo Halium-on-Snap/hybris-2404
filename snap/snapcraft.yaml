@@ -238,7 +238,7 @@ parts:
       export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
       ./autogen.sh
       ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd \
-          --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache \
+          --with-android-headers=$CRAFT_STAGE/usr/include/android \
           --enable-mali-quirks --enable-experimental --enable-debug --enable-trace \
           --with-default-hybris-ld-library-path=$HYBRISLDPATH --with-default-egl-platform=wayland
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
