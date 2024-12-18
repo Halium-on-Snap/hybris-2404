@@ -167,8 +167,8 @@ parts:
     #   o libvulkan.so.1
     after: [ android-headers ]
     plugin: autotools
-    source: https://github.com/libhybris/libhybris.git
-    source-branch: master
+    source: https://github.com/fredldotme/libhybris.git
+    source-branch: snaps
     build-packages:
       - libwayland-dev
       - libwayland-egl-backend-dev
