@@ -232,10 +232,15 @@ parts:
     override-build: |
       ARCH=arm64
       [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
+      HYBRISLDPATH="/system/lib64:/vendor/lib64:/odm/lib64"
+      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && HYBRISLDPATH="/system/lib:/vendor/lib:/odm/lib"
       cd $CRAFT_PART_SRC_WORK/hybris
       export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
       ./autogen.sh
-      ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache --enable-mali-quirks --enable-experimental
+      ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd \
+          --with-android-headers=$CRAFT_STAGE/usr/include/android --enable-property-cache \
+          --enable-mali-quirks --enable-experimental --enable-debug --enable-trace \
+          --with-default-hybris-ld-library-path=$HYBRISLDPATH --with-default-egl-platform=wayland
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
     override-prime: |
