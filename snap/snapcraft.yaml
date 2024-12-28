@@ -219,8 +219,8 @@ parts:
     #   o libvulkan.so.1
     after: [ android-headers ]
     plugin: autotools
-    source: https://github.com/fredldotme/libhybris.git
-    source-branch: snaps
+    source: https://github.com/libhybris/libhybris.git
+    source-branch: master
     build-packages:
       - libwayland-dev
       - libwayland-egl-backend-dev
@@ -243,8 +243,10 @@ parts:
           --with-default-hybris-ld-library-path=$HYBRISLDPATH --with-default-egl-platform=wayland
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
-    #prime:
-    #  - usr/lib
+    override-prime: |
+      craftctl default
+    # prime:
+    #   - usr/lib
 
   # Work around https://bugs.launchpad.net/snapcraft/+bug/2076115
   cleanup:
@@ -268,10 +270,7 @@ parts:
       find . -type f,l -exec rm -f ${CRAFT_PRIME}/{} \;
       find ${CRAFT_PRIME} -empty -type d -delete
       # Move libhybris where it belongs
-      rm ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/libvulkan*.so*
       rm ${CRAFT_PRIME}/usr/lib/*.la
-      rm ${CRAFT_PRIME}/usr/lib/libhybris/*.la
-      rm ${CRAFT_PRIME}/usr/lib/libhybris/linker/*.la
       mv ${CRAFT_PRIME}/usr/lib/*.so* ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
       mv ${CRAFT_PRIME}/usr/lib/libhybris ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
       rm -rf ${CRAFT_PRIME}/usr/lib/pkgconfig
