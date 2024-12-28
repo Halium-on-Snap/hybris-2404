@@ -52,6 +52,7 @@ parts:
       - libegl1
       - libgles2
       - libgbm1
+      - libvulkan1
     prime:
       - usr/lib
       - usr/share/doc/*/copyright
@@ -216,7 +217,6 @@ parts:
     # This provides the essential APIs
     #   o libGL.so.0
     #   o libEGL.so.1
-    #   o libvulkan.so.1
     after: [ android-headers ]
     plugin: autotools
     source: https://github.com/libhybris/libhybris.git
@@ -224,7 +224,6 @@ parts:
     build-packages:
       - libwayland-dev
       - libwayland-egl-backend-dev
-      - libvulkan-dev
       - libglvnd-dev
     build-environment:
       - CFLAGS: -Wno-pointer-to-int-cast
