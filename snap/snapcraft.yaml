@@ -52,7 +52,6 @@ parts:
       - libegl1
       - libgles2
       - libgbm1
-      - libvulkan1
     prime:
       - usr/lib
       - usr/share/doc/*/copyright
@@ -167,28 +166,34 @@ parts:
     #   o libEGL.so.1
     after: [ android-headers ]
     plugin: autotools
-    source: https://github.com/libhybris/libhybris.git
-    source-branch: master
+    source: https://github.com/fredldotme/libhybris.git
+    source-branch: vulkan-idload-to-wrappers
     build-packages:
       - pkg-config
       - libwayland-dev
       - libwayland-egl-backend-dev
       - libglvnd-dev
+      - libvulkan-dev
+      - libx11-dev
+      - libxcb1-dev
+      - libxrandr-dev
     build-environment:
       - CFLAGS: -Wno-pointer-to-int-cast
       - CXXFLAGS: -Wno-pointer-to-int-cast
     override-build: |
       ARCH=arm64
       [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
-      HYBRISLDPATH="/system/lib64:/vendor/lib64:/odm/lib64"
-      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && HYBRISLDPATH="/system/lib:/vendor/lib:/odm/lib"
+      HYBRISLDPATH="/system/lib64:/system/lib64/hw:/vendor/lib64:/vendor/lib64/hw:/odm/lib64:/odm/lib64/hw"
+      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && HYBRISLDPATH="/system/lib:/system/lib/hw:/vendor/lib:/vendor/lib/hw:/odm/lib:/odm/lib/hw"
       cd $CRAFT_PART_SRC_WORK/hybris
       export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
       ./autogen.sh
       ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd \
           --with-android-headers=$CRAFT_STAGE/usr/include/android \
           --enable-mali-quirks --enable-experimental --enable-debug --enable-trace \
-          --with-default-hybris-ld-library-path=$HYBRISLDPATH --with-default-egl-platform=wayland
+          --enable-vulkan-x11-stubs \
+          --with-default-hybris-ld-library-path=$HYBRISLDPATH \
+          --with-default-egl-platform=wayland
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
     override-prime: |
