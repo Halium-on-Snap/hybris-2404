@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 SELF="$( cd -- "$(dirname "$0")/.." ; pwd -P )/usr"
 ARCH_TRIPLETS=( @ARCH_TRIPLETS@ )
@@ -52,10 +52,10 @@ if [ -d "/var/lib/snapd/lib/gl32/vdpau" ]; then
 fi
 
 # We use GL4ES built without GBM and with X11 compatibility via buffer copies at runtime
-LD_LIBRARY_PATH=$SELF/lib/gl4es:${LD_LIBRARY_PATH}
-LIBGL_FB=3
-LIBGL_SILENTSTUB=1
-LIBGL_NOBANNER=1
+LD_LIBRARY_PATH="$SELF/lib/gl4es:${LD_LIBRARY_PATH}"
+[ -z "$LIBGL_FB" ] && LIBGL_FB=3
+[ -z "$LIBGL_SILENTSTUB" ] && LIBGL_SILENTSTUB=1
+[ -z "$LIBGL_NOBANNER" ] && LIBGL_NOBANNER=1
 
 if [ -d "/var/lib/snapd/lib/gl/gbm" ]; then
   export GBM_BACKENDS_PATH=/var/lib/snapd/lib/gl/gbm
