@@ -155,8 +155,8 @@ parts:
     source: https://github.com/ptitSeb/gl4es.git
     source-branch: master
     cmake-parameters:
-      - -DCMAKE_INSTALL_PREFIX=/usr
-      - -DGBM=OFF
+      - -DCMAKE_INSTALL_PREFIX=/
+      - -DHYBRIS=ON
 
   android-headers:
     plugin: autotools
@@ -174,7 +174,7 @@ parts:
     after: [ android-headers ]
     plugin: autotools
     source: https://github.com/fredldotme/libhybris.git
-    source-branch: hybris-2404-20260511
+    source-branch: hybris-2404-20260519
     build-packages:
       - pkg-config
       - libwayland-dev
@@ -198,7 +198,7 @@ parts:
       ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd \
           --with-android-headers=$CRAFT_STAGE/usr/include/android \
           --enable-mali-quirks --enable-experimental --enable-debug --enable-trace \
-          --enable-vulkan-x11-stubs --with-default-egl-platform=auto \
+          --enable-vulkan-x11-stubs --with-default-egl-platform=wayland \
           --with-default-hybris-ld-library-path=$HYBRISLDPATH
       CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
       DESTDIR=$CRAFT_PART_INSTALL make install
