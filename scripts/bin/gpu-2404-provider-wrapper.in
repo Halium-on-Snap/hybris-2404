@@ -21,6 +21,14 @@ VK_LAYER_PATH=${VK_LAYER_PATH:+$VK_LAYER_PATH:}${SELF}/share/vulkan/implicit_lay
 XDG_DATA_DIRS=${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}${SELF}/share
 XLOCALEDIR="${SELF}/share/X11/locale"
 
+# We mostly care for arm64 as properly tested, but make life easier for armhf too
+# Note that we need the hw/ ones for systems without provided /linkerconfig
+if [ "$SNAP_ARCH" == "arm64" ]; then
+  HYBRIS_LD_LIBRARY_PATH=/system/lib64:/system/lib64/hw:/vendor/lib64:/vendor/lib64/hw:/odm/lib64:/odm/lib64/hw
+else
+  HYBRIS_LD_LIBRARY_PATH=/system/lib:/system/lib/hw:/vendor/lib:/vendor/lib/hw:/odm/lib:/odm/lib/hw
+fi
+
 # These are in the default LD_LIBRARY_PATH, but we don't want those.
 # These are from the host in a potentially different ABI.
 if [ -d "/var/lib/snapd/lib/gl" ] && [ $(echo "${LD_LIBRARY_PATH}" | grep "/var/lib/snapd/lib/gl:") ]; then
@@ -52,10 +60,10 @@ if [ -d "/var/lib/snapd/lib/gl32/vdpau" ]; then
 fi
 
 # We use GL4ES built without GBM and with X11 compatibility via buffer copies at runtime
-LD_LIBRARY_PATH="$SELF/lib/gl4es:${LD_LIBRARY_PATH}"
 [ -z "$LIBGL_FB" ] && LIBGL_FB=3
 [ -z "$LIBGL_SILENTSTUB" ] && LIBGL_SILENTSTUB=1
 [ -z "$LIBGL_NOBANNER" ] && LIBGL_NOBANNER=1
+LD_LIBRARY_PATH="$SELF/lib/gl4es:${LD_LIBRARY_PATH}"
 
 if [ -d "/var/lib/snapd/lib/gl/gbm" ]; then
   export GBM_BACKENDS_PATH=/var/lib/snapd/lib/gl/gbm
@@ -77,6 +85,7 @@ export XLOCALEDIR
 export HYBRIS_LINKER_DIR
 export HYBRIS_EGLPLATFORM_DIR
 export HYBRIS_VULKANPLATFORM_DIR
+export HYBRIS_LD_LIBRARY_PATH
 export LD_PRELOAD
 export LIBGL_FB
 export LIBGL_SILENTSTUB
