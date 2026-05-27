@@ -18,18 +18,17 @@ description: |
 website: https://github.com/Halium-on-Snap/hybris-2404
 contact: https://github.com/Halium-on-Snap/hybris-2404/issues
 source-code: https://github.com/Halium-on-Snap/hybris-2404
-
 compression: lzo
 version: "latest"
-
 grade: stable
 confinement: strict
 
-platforms:
-  arm64:
-  armhf:
-
 package-repositories:
+  - type: apt
+    url: http://repo.ubports.com/
+    key-id: B551C909D750AA744948E9ED4BD4B4D6DBB583F1
+    components: [ main ]
+    suites: [ 24.04-2.x ]
   - type: apt
     url: http://archive.ubuntu.com/ubuntu
     suites: [noble]
@@ -37,6 +36,10 @@ package-repositories:
     architectures: [i386]
     key-id: F6ECB3762474EDA9D21B7022871920D1991BC93C
     key-server: keyserver.ubuntu.com
+
+platforms:
+  arm64:
+  armhf:
 
 parts:
   apis:
@@ -48,9 +51,11 @@ parts:
     #
     plugin: nil
     stage-packages:
+      - libgl1
       - libegl1
       - libgles2
       - libgbm1
+      - libvulkan1-hybris # sprinkled across the yaml where libvulkan1 gets staged
     prime:
       - usr/lib
       - usr/share/doc/*/copyright
@@ -80,6 +85,7 @@ parts:
       - libva-drm2
       - libva-x11-2
       - libva-wayland2
+      - libvulkan1-hybris
     prime:
       - usr/lib
       - usr/share/doc/*/copyright
@@ -89,10 +95,8 @@ parts:
     plugin: nil
     stage-packages:
       - libgl1-mesa-dri
-      - va-driver-all
-      - vdpau-driver-all
-      - libvdpau-va-gl1
       - libglx-mesa0
+      - libvulkan1-hybris
     organize:
       # Expected at /drirc.d by the `gpu-2404` interface
       usr/share/drirc.d: drirc.d
@@ -102,10 +106,13 @@ parts:
       - drirc.d
     override-stage: |
       craftctl default
+      rm -f $CRAFT_STAGE/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libvulkan.so.*
 
   x11:
     # X11 support (not much cost to having this)
-    #   o libGLX.so.0
+    #   o libGLX.so.0 # EDIT: Not anymore, see GL4ES implementation of it's own
+    #                         GLX functions, and no libGLX.so.0 gets mapped into
+    #                         the process.
     plugin: nil
     stage-packages:
       - libglx0
@@ -120,6 +127,7 @@ parts:
       - libxdamage1
       - libxdmcp6
       - libxshmfence1
+      - libvulkan1-hybris
     organize:
       # Expected at /X11/XErrorDB by the `gpu-2404` interface
       usr/share/X11/XErrorDB: X11/XErrorDB
@@ -141,71 +149,35 @@ parts:
       - usr/share/doc/*/copyright
 
   tls-padding:
-    plugin: make
-    source: https://gitlab.com/ubports/development/core/hybris-support/tls-padding.git
-    source-branch: main
-    override-build: |
-      export PREFIX=$CRAFT_PART_INSTALL/usr
-      make
-      mkdir -p $PREFIX/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
-      cp libtls-padding.so $PREFIX/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/
+    plugin: nil
+    stage-packages:
+      - libtls-padding0
 
   gl4es:
+    # libGL.so.1 with libhybris
+    after:
+      - hybris
     plugin: cmake
     source: https://github.com/ptitSeb/gl4es.git
     source-branch: master
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/
       - -DHYBRIS=ON
-
-  android-headers:
-    plugin: autotools
-    source: https://github.com/Halium/android-headers.git
-    source-branch: halium-11.0
-    override-build: |
-      export PREFIX=$CRAFT_PART_INSTALL/usr
-      make
-      make install
+    build-packages:
+      - libx11-dev
 
   hybris:
-    # This provides the essential APIs
-    #   o libGL.so.0
-    #   o libEGL.so.1
-    after: [ android-headers ]
-    plugin: autotools
-    source: https://github.com/fredldotme/libhybris.git
-    source-branch: hybris-2404-20260519
-    build-packages:
-      - pkg-config
-      - libwayland-dev
-      - libwayland-egl-backend-dev
-      - libglvnd-dev
-      - libvulkan-dev
-      - libx11-dev
-      - libxcb1-dev
-      - libxrandr-dev
-    build-environment:
-      - CFLAGS: -Wno-pointer-to-int-cast
-      - CXXFLAGS: -Wno-pointer-to-int-cast
-    override-build: |
-      ARCH=arm64
-      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && ARCH=arm
-      HYBRISLDPATH="/system/lib64:/system/lib64/hw:/vendor/lib64:/vendor/lib64/hw:/odm/lib64:/odm/lib64/hw"
-      [ "$CRAFT_ARCH_BUILD_FOR" == "armhf" ] && HYBRISLDPATH="/system/lib:/system/lib/hw:/vendor/lib:/vendor/lib/hw:/odm/lib:/odm/lib/hw"
-      cd $CRAFT_PART_SRC_WORK/hybris
-      export PKG_CONFIG_PATH=$CRAFT_STAGE/usr/lib/pkgconfig
-      ./autogen.sh
-      ./configure --prefix=/usr --enable-arch=$ARCH --enable-wayland --enable-glvnd \
-          --with-android-headers=$CRAFT_STAGE/usr/include/android \
-          --enable-mali-quirks --enable-experimental --enable-debug --enable-trace \
-          --enable-vulkan-x11-stubs --with-default-egl-platform=wayland \
-          --with-default-hybris-ld-library-path=$HYBRISLDPATH
-      CFLAGS=-Wno-pointer-to-int-cast CXXFLAGS=-Wno-pointer-to-int-cast make -j$(nproc --all)
-      DESTDIR=$CRAFT_PART_INSTALL make install
-    override-prime: |
+    after:
+      - dri
+      - wayland
+    plugin: nil
+    stage-packages:
+      - libhybris-common1
+      - libhybris
+      - libhybris-test
+      - libhybris-utils
+    override-stage: |
       craftctl default
-    # prime:
-    #   - usr/lib
 
   # Work around https://bugs.launchpad.net/snapcraft/+bug/2076115
   cleanup:
@@ -218,7 +190,6 @@ parts:
     - wayland
     - tls-padding
     - gl4es
-    - android-headers
     - hybris
     plugin: nil
     build-snaps:
@@ -228,11 +199,6 @@ parts:
       cd /snap/core24/current
       find . -type f,l -exec rm -f ${CRAFT_PRIME}/{} \;
       find ${CRAFT_PRIME} -empty -type d -delete
-      # Move libhybris where it belongs
-      rm ${CRAFT_PRIME}/usr/lib/*.la
-      mv ${CRAFT_PRIME}/usr/lib/*.so* ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
-      mv ${CRAFT_PRIME}/usr/lib/libhybris ${CRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/
-      rm -rf ${CRAFT_PRIME}/usr/lib/pkgconfig
 
   file-list:
     after: [cleanup]
