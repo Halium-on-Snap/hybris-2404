@@ -95,6 +95,9 @@ parts:
     plugin: nil
     stage-packages:
       - libgl1-mesa-dri
+      - va-driver-all
+      - vdpau-driver-all
+      - libvdpau-va-gl1
       - libglx-mesa0
       - libvulkan1-hybris
     organize:
