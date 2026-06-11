@@ -24,11 +24,15 @@ XLOCALEDIR="${SELF}/share/X11/locale"
 # We mostly care for arm64 as properly tested, but make life easier for armhf too
 # Note that we need the hw/ ones for systems without provided /linkerconfig,
 # which came way later in the Ubuntu Touch snapd libhybris patchset.
-if [ ! -h /linkerconfig ]; then
-  if [ "$SNAP_ARCH" == "arm64" ]; then
-    export HYBRIS_LD_LIBRARY_PATH=/system/lib64:/system/lib64/hw:/vendor/lib64:/vendor/lib64/hw:/odm/lib64:/odm/lib64/hw
-  else
-    export HYBRIS_LD_LIBRARY_PATH=/system/lib:/system/lib/hw:/vendor/lib:/vendor/lib/hw:/odm/lib:/odm/lib/hw
+
+# Remember, this might run on a Mesa system
+if [ -d /android ]; then
+  if [ ! -h /linkerconfig ]; then
+    if [ "$SNAP_ARCH" == "arm64" ]; then
+      export HYBRIS_LD_LIBRARY_PATH=/system/lib64:/system/lib64/hw:/vendor/lib64:/vendor/lib64/hw:/odm/lib64:/odm/lib64/hw
+    else
+      export HYBRIS_LD_LIBRARY_PATH=/system/lib:/system/lib/hw:/vendor/lib:/vendor/lib/hw:/odm/lib:/odm/lib/hw
+    fi
   fi
 fi
 
@@ -62,14 +66,22 @@ if [ -d "/var/lib/snapd/lib/gl32/vdpau" ]; then
   LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/var/lib/snapd/lib/gl32/vdpau
 fi
 
-# We use GL4ES built without GBM and with X11 compatibility via buffer copies at runtime
-[ -z "$LIBGL_FB" ] && LIBGL_FB=3
-[ -z "$LIBGL_SILENTSTUB" ] && LIBGL_SILENTSTUB=1
-[ -z "$LIBGL_NOBANNER" ] && LIBGL_NOBANNER=1
-LD_LIBRARY_PATH="$SELF/lib/gl4es:${LD_LIBRARY_PATH}"
+# We use GL4ES built
+# - without GBM
+# - with X11 compatibility via buffer copies
+# - through libhybris' libEGL
+# - using the Android EGL platform
+if [ -d /android ]; then
+  LD_LIBRARY_PATH="$SELF/lib/gl4es:${LD_LIBRARY_PATH}"
+
+  # Make the GL4ES defaults opt-ins
+  [ -z "$LIBGL_FB" ] && LIBGL_FB=3
+  [ -z "$LIBGL_SILENTSTUB" ] && LIBGL_SILENTSTUB=1
+  [ -z "$LIBGL_NOBANNER" ] && LIBGL_NOBANNER=1
+fi
 
 if [ -d "/var/lib/snapd/lib/gl/gbm" ]; then
-  export GBM_BACKENDS_PATH=/var/lib/snapd/lib/gl/gbm
+  GBM_BACKENDS_PATH=/var/lib/snapd/lib/gl/gbm
 fi
 
 export LD_LIBRARY_PATH
@@ -81,6 +93,7 @@ if [ "${__NV_PRIME_RENDER_OFFLOAD:-}" != 1 ]; then
 fi
 export __EGL_VENDOR_LIBRARY_DIRS
 export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS
+export GBM_BACKENDS_PATH
 export DRIRC_CONFIGDIR
 export VK_LAYER_PATH
 export XDG_DATA_DIRS
